@@ -1,0 +1,44 @@
+name: Build My Sober Journey APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download project
+        uses: actions/checkout@v4
+
+      - name: Extract project ZIP
+        run: |
+          unzip -q MySoberJourney-v3.zip -d project
+          echo "Project extracted"
+          find project -name gradlew -type f
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build APK
+        run: |
+          GRADLEW=$(find project -name gradlew -type f | head -n 1)
+          PROJECT_DIR=$(dirname "$GRADLEW")
+          cd "$PROJECT_DIR"
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MySoberJourney-APK
+          path: project/**/build/outputs/apk/**/*.apk
